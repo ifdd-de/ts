@@ -1,0 +1,91 @@
+# Development: the same containers without Keycloak and without the proxy
+# route. Grafana and VictoriaMetrics listen on 127.0.0.1; log in to Grafana
+# as admin with the password in secrets/grafana_admin_password.
+services:
+  victoriametrics:
+    image: "{{ cookiecutter.ifdd_ts_vm_image }}"
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=${IFDD_TS_RETENTION:-{{ cookiecutter.ifdd_ts_retention }}}"
+      - "-httpListenAddr=:8428"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"
+    ports:
+      - "127.0.0.1:${IFDD_TS_VM_DEV_PORT:-{{ cookiecutter.ifdd_ts_vm_dev_port }}}:8428"
+    volumes:
+      - vm-dev-data:/storage
+    labels:
+      - "traefik.enable=false"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8428/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  grafana:
+    image: "{{ cookiecutter.ifdd_ts_grafana_image }}"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"
+    ports:
+      - "127.0.0.1:${IFDD_TS_GRAFANA_DEV_PORT:-{{ cookiecutter.ifdd_ts_grafana_dev_port }}}:3000"
+    environment:
+      IFDD_TS_ROOT_URL: "http://127.0.0.1:${IFDD_TS_GRAFANA_DEV_PORT:-{{ cookiecutter.ifdd_ts_grafana_dev_port }}}/"
+      IFDD_TS_COOKIE_SECURE: "false"
+      IFDD_TS_OIDC_ENABLED: "false"
+      IFDD_TS_OIDC_ISSUER: "${IFDD_TS_OIDC_ISSUER:-{{ cookiecutter.ifdd_ts_oidc_issuer }}}"
+      IFDD_TS_OIDC_CLIENT_ID: "${IFDD_TS_OIDC_CLIENT_ID:-{{ cookiecutter.ifdd_ts_oidc_client_id }}}"
+      IFDD_TS_BE_URL: "${IFDD_TS_BE_URL:-{{ cookiecutter.ifdd_ts_be_url }}}"
+      IFDD_TS_BE_AUTH: "none"
+    secrets:
+      - grafana_admin_password
+      - grafana_secret_key
+      - oidc_client_secret
+    volumes:
+      - grafana-dev-data:/var/lib/grafana
+      - ./grafana/plugins:/var/lib/grafana/plugins:ro
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    networks:
+      - default
+      - ext-proxy-net
+    labels:
+      - "traefik.enable=false"
+    depends_on:
+      victoriametrics:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+secrets:
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password
+  grafana_secret_key:
+    file: ./secrets/grafana_secret_key
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+
+volumes:
+  vm-dev-data:
+  grafana-dev-data:
+
+networks:
+  # Only to reach ifdd-be (IFDD_TS_BE_URL); Grafana is not routed by the proxy.
+  ext-proxy-net:
+    name: {{ cookiecutter.ifdd_proxy_network }}
+    external: true

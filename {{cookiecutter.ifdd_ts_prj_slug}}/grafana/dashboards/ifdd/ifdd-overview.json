@@ -1,0 +1,120 @@
+{
+  "uid": "ifdd-overview",
+  "title": "IFDD series overview",
+  "description": "All objects of ifdd-be that have time series (label ifdd_id).",
+  "tags": [
+    "ifdd",
+    "ts"
+  ],
+  "editable": false,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "IFDD dashboards",
+      "type": "dashboards",
+      "tags": [
+        "ifdd"
+      ],
+      "asDropdown": true,
+      "includeVars": false,
+      "keepTime": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "table",
+      "title": "Objects with time series",
+      "description": "One row per object. The link opens the object dashboard or the JSON-LD object itself.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 18
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ifdd-ts-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ifdd-ts-vm"
+          },
+          "editorMode": "code",
+          "expr": "count by (ifdd_id) ({ifdd_id!=\"\"})",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "ifdd_id": "Object (@id)",
+              "Value": "Series"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ifdd_id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open object dashboard",
+                    "url": "/d/ifdd-object/ifdd-object?var-object=${__value.raw}&${__url_time_range}"
+                  },
+                  {
+                    "title": "Open JSON-LD object (@id)",
+                    "url": "${__value.raw}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "displayName": "Object (@id)",
+            "desc": false
+          }
+        ]
+      }
+    }
+  ]
+}

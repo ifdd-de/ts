@@ -1,0 +1,6 @@
+# Grafana plugins of this instance, fetched and verified by adm_01_plugins.sh.
+# One line per plugin and platform; the checksum is the SHA-256 of the zip.
+#
+# id                              version  platform     sha256                                                            url
+yesoreyeram-infinity-datasource   4.0.0    linux_amd64  2ebce2b2937983651d64991e833e48294b8002581a105741ae3df967e329905d  https://github.com/grafana/grafana-infinity-datasource/releases/download/v4.0.0/yesoreyeram-infinity-datasource-4.0.0.linux_amd64.zip
+yesoreyeram-infinity-datasource   4.0.0    linux_arm64  8424eb99bc5224df5ff6f0ad0564495a00763d04e560b4771b1621e721f6dc3a  https://github.com/grafana/grafana-infinity-datasource/releases/download/v4.0.0/yesoreyeram-infinity-datasource-4.0.0.linux_arm64.zip

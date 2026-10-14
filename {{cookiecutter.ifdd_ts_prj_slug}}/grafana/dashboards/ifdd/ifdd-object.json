@@ -1,0 +1,327 @@
+{
+  "uid": "ifdd-object",
+  "title": "IFDD object",
+  "description": "Time series of one ifdd-be object, next to the object itself.",
+  "tags": [
+    "ifdd",
+    "ts"
+  ],
+  "editable": false,
+  "graphTooltip": 1,
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "templating": {
+    "list": [
+      {
+        "name": "object",
+        "label": "Object (@id)",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ifdd-ts-vm"
+        },
+        "definition": "label_values(ifdd_id)",
+        "query": {
+          "query": "label_values(ifdd_id)",
+          "refId": "var-object"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "current": {}
+      },
+      {
+        "name": "object_path",
+        "label": "Path of @id",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ifdd-ts-vm"
+        },
+        "definition": "label_values({ifdd_id=\"$object\"}, ifdd_id)",
+        "query": {
+          "query": "label_values({ifdd_id=\"$object\"}, ifdd_id)",
+          "refId": "var-object_path"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "hide": 2,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "current": {},
+        "regex": "/^https?:\\/\\/[^\\/]+(\\/[^?#]*)/"
+      },
+      {
+        "name": "property",
+        "label": "Property",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "ifdd-ts-vm"
+        },
+        "definition": "label_values({ifdd_id=\"$object\"}, ifdd_property)",
+        "query": {
+          "query": "label_values({ifdd_id=\"$object\"}, ifdd_property)",
+          "refId": "var-property"
+        },
+        "refresh": 2,
+        "sort": 1,
+        "hide": 0,
+        "includeAll": true,
+        "multi": true,
+        "options": [],
+        "current": {},
+        "allValue": ".+"
+      }
+    ]
+  },
+  "annotations": {
+    "list": []
+  },
+  "links": [
+    {
+      "title": "IFDD dashboards",
+      "type": "dashboards",
+      "tags": [
+        "ifdd"
+      ],
+      "asDropdown": true,
+      "includeVars": false,
+      "keepTime": true
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Values of $object",
+      "description": "Series with ifdd_id = the selected object. The legend shows the last segment of ifdd_property; the links lead to the object, the property and the unit.",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 11
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ifdd-ts-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ifdd-ts-vm"
+          },
+          "editorMode": "code",
+          "expr": "{ifdd_id=\"$object\", ifdd_property=~\"$property\"}",
+          "legendFormat": "{{ifdd_property}}",
+          "range": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "^.*[/#]([^/#]+)$",
+            "renamePattern": "$1"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "links": [
+            {
+              "title": "Open JSON-LD object (@id)",
+              "url": "${__field.labels.ifdd_id}",
+              "targetBlank": true
+            },
+            {
+              "title": "Open property definition",
+              "url": "${__field.labels.ifdd_property}",
+              "targetBlank": true
+            },
+            {
+              "title": "Open unit definition",
+              "url": "${__field.labels.ifdd_unit}",
+              "targetBlank": true
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "none"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Object in ifdd-be (JSON-LD)",
+      "description": "The object as the backend returns it: IFDD_TS_BE_URL + the path of its @id.",
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 14,
+        "h": 12
+      },
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "ifdd-ts-be"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "ifdd-ts-be"
+          },
+          "type": "json",
+          "source": "url",
+          "parser": "backend",
+          "format": "table",
+          "url": "${object_path}",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$each($, function($v, $k) { {\"key\": $k, \"value\": $type($v) = \"string\" ? $v : $string($v)} })",
+          "columns": [
+            {
+              "selector": "key",
+              "text": "Key",
+              "type": "string"
+            },
+            {
+              "selector": "value",
+              "text": "Value",
+              "type": "string"
+            }
+          ]
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Series of this object",
+      "description": "Metric, property and unit of every series of the object.",
+      "gridPos": {
+        "x": 14,
+        "y": 11,
+        "w": 10,
+        "h": 12
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "ifdd-ts-vm"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "ifdd-ts-vm"
+          },
+          "editorMode": "code",
+          "expr": "count by (__name__, ifdd_property, ifdd_unit) ({ifdd_id=\"$object\"})",
+          "format": "table",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true
+            },
+            "renameByName": {
+              "__name__": "Metric",
+              "ifdd_property": "Property",
+              "ifdd_unit": "Unit"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ifdd_property"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open property definition",
+                    "url": "${__value.raw}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ifdd_unit"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Open unit definition",
+                    "url": "${__value.raw}",
+                    "targetBlank": true
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true
+      }
+    }
+  ]
+}

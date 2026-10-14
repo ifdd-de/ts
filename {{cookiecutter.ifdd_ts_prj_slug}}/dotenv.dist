@@ -1,0 +1,29 @@
+# Values for docker compose interpolation (the ${...} in the compose files).
+# The compose files pass on to Grafana only what it needs, by name.
+# Secrets are not kept here but in secrets/ (see README).
+
+# Host name under which the proxy routes to Grafana.
+IFDD_TS_HOST={{ cookiecutter.ifdd_ts_host }}
+
+# Directory for the VictoriaMetrics data, absolute or relative (starting with
+# ./ or ../). Required in production; development uses a named volume.
+# Plan backups for it: the data is kept for IFDD_TS_RETENTION.
+IFDD_TS_VM_DATA_DIR={{ cookiecutter.ifdd_ts_vm_data_dir }}
+
+# How long VictoriaMetrics keeps samples (h, d, w, M or y). Samples older
+# than this are deleted and not accepted on ingestion.
+IFDD_TS_RETENTION={{ cookiecutter.ifdd_ts_retention }}
+
+# Base URL of ifdd-be as reached from the Grafana container; the node of an
+# object is this URL + the path of its @id. No trailing slash.
+IFDD_TS_BE_URL={{ cookiecutter.ifdd_ts_be_url }}
+
+# Keycloak realm (issuer URL, no trailing slash) and the client of this
+# service. The client is used for the user login and, with its service
+# account, for reading objects from ifdd-be. Its secret: secrets/oidc_client_secret.
+IFDD_TS_OIDC_ISSUER={{ cookiecutter.ifdd_ts_oidc_issuer }}
+IFDD_TS_OIDC_CLIENT_ID={{ cookiecutter.ifdd_ts_oidc_client_id }}
+
+# Ports on 127.0.0.1 for local development.
+IFDD_TS_GRAFANA_DEV_PORT={{ cookiecutter.ifdd_ts_grafana_dev_port }}
+IFDD_TS_VM_DEV_PORT={{ cookiecutter.ifdd_ts_vm_dev_port }}

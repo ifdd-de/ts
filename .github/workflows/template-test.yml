@@ -1,0 +1,80 @@
+name: template-test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        fixture: [defaults, custom]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install cookiecutter cruft pytest pyyaml
+
+      - name: render
+        run: cookiecutter --no-input --config-file tests/fixtures/${{ matrix.fixture }}.yaml -o out .
+
+      - name: no leftover placeholders
+        run: |
+          ! grep -rn "cookiecutter\." out --include='*.yml' --include='*.yaml' --include='*.ini' --include='*.md' --include='*.sh' --include='*.dist' --include='*.py' --exclude=test_config.py
+
+      - name: static checks of the instance
+        run: cd out/* && pytest -q tests
+
+      - name: Documentation (docs/en, docs/de) matches and builds
+        run: |
+          pip install -r tests/docs/requirements.txt
+          python tests/check_docs.py out/* --prefix ifdd-ts-
+
+      - name: compose files
+        run: |
+          cd out/*
+          sed -i 's|^IFDD_TS_VM_DATA_DIR=.*|IFDD_TS_VM_DATA_DIR=./data|' .env
+          docker compose -f docker-compose-production.yml config --quiet
+          docker compose -f docker-compose-development.yml config --quiet
+
+      - name: pre-generation hook rejects bad values
+        run: |
+          for bad in "ifdd_ts_retention=10" "ifdd_ts_be_url=http://be/" "ifdd_ts_role_viewer=admin" \
+                     "ifdd_ts_ingest_network=proxy-net" "ifdd_ts_grafana_dev_port=8092"; do
+            if cookiecutter --no-input -f -o bad . "$bad"; then echo "accepted: $bad"; exit 1; fi
+          done
+
+  smoke:
+    # Starts the development stack with the real images and checks what the
+    # static tests cannot: images, read-only containers, healthchecks,
+    # provisioning, plugin signature and a query through Grafana.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install cookiecutter
+      - run: cookiecutter --no-input -o out .
+      - name: start
+        working-directory: out/ifdd-ts
+        run: |
+          docker network create proxy-net
+          ./adm_01_plugins.sh
+          ./adm_02_run.sh development --wait
+      - name: probe
+        working-directory: out/ifdd-ts
+        run: |
+          python3 examples/load_examples.py
+          sleep 5
+          AUTH="admin:$(cat secrets/grafana_admin_password)"
+          G=http://127.0.0.1:8091
+          curl -fsS -u "$AUTH" $G/api/plugins/yesoreyeram-infinity-datasource/settings | grep -q '"signature":"valid"'
+          test "$(curl -fsS -u "$AUTH" "$G/api/search?tag=ifdd" | python3 -c 'import sys,json;print(len(json.load(sys.stdin)))')" = 2
+          curl -fsS -u "$AUTH" "$G/api/datasources/uid/ifdd-ts-vm/resources/api/v1/label/ifdd_id/values" | grep -q transformer-0001
+      - name: logs on failure
+        if: failure()
+        working-directory: out/ifdd-ts
+        run: docker compose -f docker-compose-development.yml logs

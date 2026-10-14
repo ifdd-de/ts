@@ -1,0 +1,22 @@
+# Dashboards are files, not database entries: they are versioned with the
+# instance and cannot be changed in the UI (edit the JSON, restart Grafana).
+apiVersion: 1
+
+providers:
+  # Shipped with the template, updated by cruft.
+  - name: ifdd
+    folder: IFDD
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards/ifdd
+
+  # Owned by the instance, on the cruft skip list.
+  - name: private
+    folder: Private
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/dashboards/private

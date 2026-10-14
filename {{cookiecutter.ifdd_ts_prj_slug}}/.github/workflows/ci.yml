@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install pytest pyyaml
+      - run: pytest -q tests
+      - name: compose files
+        run: |
+          cp dotenv.dist .env
+          sed -i 's|^IFDD_TS_VM_DATA_DIR=.*|IFDD_TS_VM_DATA_DIR=./data|' .env
+          mkdir -p secrets && touch secrets/grafana_admin_password secrets/grafana_secret_key secrets/oidc_client_secret
+          docker compose -f docker-compose-production.yml config --quiet
+          docker compose -f docker-compose-development.yml config --quiet

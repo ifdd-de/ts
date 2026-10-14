@@ -1,0 +1,29 @@
+name: template-update-test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: pip install cookiecutter cruft pytest pyyaml
+      - name: generate from the latest tag, update to this commit
+        run: |
+          tag=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -z "$tag" ]; then echo "no tag yet - nothing to update from"; exit 0; fi
+          git config --global user.email ci@example.org
+          git config --global user.name ci
+          cruft create --no-input --checkout "$tag" --output-dir inst "file://$PWD"
+          cd inst/*
+          git init -q && git add -A && git commit -qm "from $tag"
+          cruft update --skip-apply-ask --checkout "$GITHUB_SHA"
+          if find . -name '*.rej' | grep -q .; then find . -name '*.rej' -exec cat {} +; exit 1; fi
+          pytest -q tests

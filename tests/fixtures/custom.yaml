@@ -1,0 +1,19 @@
+# Everything that may differ between instances, with values that differ
+# from the defaults (slug with a hyphen, other roles and claim, other networks).
+default_context:
+  ifdd_ts_prj_name: "Grid TS"
+  ifdd_ts_host: "ts.grid.example.org"
+  ifdd_ts_grafana_dev_port: "18091"
+  ifdd_ts_vm_dev_port: "18092"
+  ifdd_ts_retention: "120M"
+  ifdd_ts_be_url: "https://be.grid.example.org/v1"
+  ifdd_ts_oidc_issuer: "https://login.example.org/realms/grid"
+  ifdd_ts_oidc_client_id: "grid-ts"
+  ifdd_ts_roles_claim: "resource_access.grid_ts.roles"
+  ifdd_ts_role_admin: "ts-admin"
+  ifdd_ts_role_editor: "ts-write"
+  ifdd_ts_role_viewer: "ts-read"
+  ifdd_ts_grafana_memory_limit: "1G"
+  ifdd_ts_vm_memory_limit: "4G"
+  ifdd_ts_ingest_network: "grid-ingest"
+  ifdd_proxy_network: "edge-net"

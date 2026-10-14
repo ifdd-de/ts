@@ -1,0 +1,103 @@
+# Production: Grafana behind the IFDD proxy; VictoriaMetrics is not routed by
+# the proxy and only reachable on the internal network (Grafana) and on the
+# ingest network (containers that write time series).
+services:
+  victoriametrics:
+    image: "{{ cookiecutter.ifdd_ts_vm_image }}"
+    command:
+      - "-storageDataPath=/storage"
+      - "-retentionPeriod=${IFDD_TS_RETENTION:?set IFDD_TS_RETENTION in .env}"
+      - "-httpListenAddr=:8428"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"
+    mem_limit: {{ cookiecutter.ifdd_ts_vm_memory_limit }}
+    volumes:
+      - "${IFDD_TS_VM_DATA_DIR:?set IFDD_TS_VM_DATA_DIR in .env}:/storage"
+    networks:
+      - internal
+      - ingest
+    labels:
+      - "traefik.enable=false"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8428/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  grafana:
+    image: "{{ cookiecutter.ifdd_ts_grafana_image }}"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - "no-new-privileges:true"
+    mem_limit: {{ cookiecutter.ifdd_ts_grafana_memory_limit }}
+    # Read by grafana/grafana.ini and the provisioning files.
+    environment:
+      IFDD_TS_ROOT_URL: "https://${IFDD_TS_HOST:?set IFDD_TS_HOST in .env}/"
+      IFDD_TS_COOKIE_SECURE: "true"
+      IFDD_TS_OIDC_ENABLED: "true"
+      IFDD_TS_OIDC_ISSUER: "${IFDD_TS_OIDC_ISSUER:?set IFDD_TS_OIDC_ISSUER in .env}"
+      IFDD_TS_OIDC_CLIENT_ID: "${IFDD_TS_OIDC_CLIENT_ID:?set IFDD_TS_OIDC_CLIENT_ID in .env}"
+      IFDD_TS_BE_URL: "${IFDD_TS_BE_URL:?set IFDD_TS_BE_URL in .env}"
+      IFDD_TS_BE_AUTH: "oauth2"
+    secrets:
+      - grafana_admin_password
+      - grafana_secret_key
+      - oidc_client_secret
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/plugins:/var/lib/grafana/plugins:ro
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    networks:
+      - internal
+      - ext-proxy-net
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.{{ cookiecutter.ifdd_ts_prj_slug }}.rule=Host(`${IFDD_TS_HOST:?set IFDD_TS_HOST in .env}`)"
+      - "traefik.http.services.{{ cookiecutter.ifdd_ts_prj_slug }}.loadbalancer.server.port=3000"
+      - "traefik.docker.network={{ cookiecutter.ifdd_proxy_network }}"
+    depends_on:
+      victoriametrics:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+secrets:
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password
+  grafana_secret_key:
+    file: ./secrets/grafana_secret_key
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret
+
+volumes:
+  grafana-data:
+
+networks:
+  # Grafana <-> VictoriaMetrics; no route to the outside.
+  internal:
+    internal: true
+  # Writers of time series join this network to reach victoriametrics:8428.
+  ingest:
+    name: {{ cookiecutter.ifdd_ts_ingest_network }}
+    external: true
+  ext-proxy-net:
+    name: {{ cookiecutter.ifdd_proxy_network }}
+    external: true

@@ -1,0 +1,18 @@
+# Local configuration, created from dotenv.dist
+.env
+
+# Created by the post-generation hook, never committed
+secrets/*
+!secrets/.gitkeep
+
+# Fetched by adm_01_plugins.sh
+grafana/plugins/*
+!grafana/plugins/.gitkeep
+grafana/plugins-cache/
+
+.idea/
+__pycache__/
+.pytest_cache/
+
+# Local builds of the documentation (docs/en, docs/de)
+docs/_build/

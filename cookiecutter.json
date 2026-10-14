@@ -1,0 +1,27 @@
+{
+    "ifdd_ts_prj_name": "IFDD TS",
+    "ifdd_ts_prj_slug": "{{ cookiecutter.ifdd_ts_prj_name | lower | replace(' ', '-') }}",
+    "ifdd_ts_host": "ts",
+    "ifdd_ts_grafana_dev_port": "8091",
+    "ifdd_ts_vm_dev_port": "8092",
+    "ifdd_ts_retention": "10y",
+    "ifdd_ts_be_url": "http://be",
+    "ifdd_ts_oidc_issuer": "https://keycloak.example.org/realms/ifdd",
+    "ifdd_ts_oidc_client_id": "ifdd-ts",
+    "ifdd_ts_roles_claim": "realm_access.roles",
+    "ifdd_ts_role_admin": "admin",
+    "ifdd_ts_role_editor": "readwrite",
+    "ifdd_ts_role_viewer": "readonly",
+    "ifdd_ts_grafana_image": "grafana/grafana:13.2.3",
+    "ifdd_ts_vm_data_dir": "./vm_data",
+    "ifdd_ts_vm_image": "victoriametrics/victoria-metrics:v1.153.0",
+    "ifdd_ts_grafana_memory_limit": "1G",
+    "ifdd_ts_vm_memory_limit": "2G",
+    "ifdd_ts_ingest_network": "ts-ingest",
+    "ifdd_proxy_network": "proxy-net",
+    "_copy_without_render": [
+        ".github",
+        "tests",
+        "grafana/dashboards"
+    ]
+}

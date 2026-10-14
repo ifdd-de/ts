@@ -1,0 +1,41 @@
+# Data sources of the time series service. Provisioned and not editable in
+# the UI: a change is made here and takes effect after a restart.
+apiVersion: 1
+
+prune: true
+
+datasources:
+  # The time series. VictoriaMetrics speaks the Prometheus query API, so
+  # Grafana's built-in Prometheus data source is used (no plugin needed).
+  - name: VictoriaMetrics
+    uid: ifdd-ts-vm
+    type: prometheus
+    access: proxy
+    url: http://victoriametrics:8428
+    isDefault: true
+    editable: false
+    jsonData:
+      httpMethod: POST
+
+  # The JSON-LD objects in ifdd-be, which the series refer to by their
+  # label ifdd_id. Queried with the Infinity plugin; the node of an object
+  # is IFDD_TS_BE_URL + the path of its @id, as in ifdd-ct.
+  - name: IFDD backend
+    uid: ifdd-ts-be
+    type: yesoreyeram-infinity-datasource
+    # Base URL: the top-level url, which the plugin backend reads (a url
+    # under jsonData is ignored by Infinity 4.0.0).
+    url: $__env{IFDD_TS_BE_URL}
+    editable: false
+    jsonData:
+      allowedHosts:
+        - $__env{IFDD_TS_BE_URL}
+      # oauth2 in production (client credentials of the ts Keycloak client),
+      # none in development.
+      auth_method: $__env{IFDD_TS_BE_AUTH}
+      oauth2:
+        oauth2_type: client_credentials
+        client_id: $__env{IFDD_TS_OIDC_CLIENT_ID}
+        token_url: $__env{IFDD_TS_OIDC_ISSUER}/protocol/openid-connect/token
+    secureJsonData:
+      oauth2ClientSecret: $__file{/run/secrets/oidc_client_secret}
