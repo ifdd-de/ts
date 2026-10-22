@@ -93,4 +93,6 @@ Grafana liegt unter `http://127.0.0.1:{{ cookiecutter.ifdd_ts_grafana_dev_port }
 `http://127.0.0.1:{{ cookiecutter.ifdd_ts_vm_dev_port }}`. Keycloak ist aus;
 das Backend wird ohne Token abgefragt. Die Beispiel-IRIs liegen unter
 example.org, daher bleibt das Objekt-Panel leer, bis Reihen für Objekte des
-eigenen Backends geschrieben werden.
+eigenen Backends geschrieben werden. VictoriaMetrics hängt auch in der
+Entwicklung in `{{ cookiecutter.ifdd_ts_ingest_network }}` (das Netz einmal
+anlegen, wie oben), damit ts-api es dort erreicht.

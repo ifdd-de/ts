@@ -27,14 +27,14 @@ OBJECTS = [
 # metric name -> (property IRI, unit IRI, base value, daily amplitude)
 PROPERTIES = {
     "active_power": (
-        "https://schema.example.org/v1/product.jsonld#activePower",
-        "https://unit.example.org/v1/base/megawatt",
+        "https://type.example.org/v1/product/activePower",
+        "https://unit.example.org/v1/unit/MegaW",
         120.0,
         40.0,
     ),
     "oil_temperature": (
-        "https://schema.example.org/v1/product.jsonld#oilTemperature",
-        "https://unit.example.org/v1/base/degree-celsius",
+        "https://type.example.org/v1/product/oilTemperature",
+        "https://unit.example.org/v1/unit/DEG_C",
         55.0,
         8.0,
     ),

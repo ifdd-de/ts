@@ -8,6 +8,9 @@ services:
       - "-storageDataPath=/storage"
       - "-retentionPeriod=${IFDD_TS_RETENTION:-{{ cookiecutter.ifdd_ts_retention }}}"
       - "-httpListenAddr=:8428"
+      # Two samples of one series with the same time keep one value (the
+      # larger); repeating a write is harmless. See docs/en/series.md.
+      - "-dedup.minScrapeInterval=1ms"
     read_only: true
     tmpfs:
       - /tmp
@@ -19,6 +22,10 @@ services:
       - "127.0.0.1:${IFDD_TS_VM_DEV_PORT:-{{ cookiecutter.ifdd_ts_vm_dev_port }}}:8428"
     volumes:
       - vm-dev-data:/storage
+    # Writers (e.g. ts-api in development) reach it there, as in production.
+    networks:
+      - default
+      - ingest
     labels:
       - "traefik.enable=false"
     healthcheck:
@@ -88,4 +95,7 @@ networks:
   # Only to reach ifdd-be (IFDD_TS_BE_URL); Grafana is not routed by the proxy.
   ext-proxy-net:
     name: {{ cookiecutter.ifdd_proxy_network }}
+    external: true
+  ingest:
+    name: {{ cookiecutter.ifdd_ts_ingest_network }}
     external: true

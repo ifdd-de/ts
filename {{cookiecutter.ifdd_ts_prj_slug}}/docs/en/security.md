@@ -9,6 +9,13 @@ publishes no port in production; it is reachable on the internal network
 Whoever is on the ingest network can write and delete series: attach only
 containers that write series.
 
+Services that should write or read only some series use ts-api instead
+(template `ifdd-de/ts-api`): it checks an access token, the roles and the
+store of every request. That check does not reach Grafana or the ingest
+network: everyone with a Grafana login sees the series of every store, and
+containers on the ingest network bypass ts-api. Both are deliberate
+(decision of 2026-10-21).
+
 ## Login to Grafana
 
 - Login through Keycloak (generic OAuth) with the client

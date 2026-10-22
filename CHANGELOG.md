@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
+- VictoriaMetrics runs with `-dedup.minScrapeInterval=1ms` in both modes: of
+  two samples of one series with the same time it keeps one (the larger
+  value), so that repeated writes, e.g. through ts-api, are harmless.
+- In development VictoriaMetrics joins the ingest network too, so that
+  writers such as ts-api reach it at `victoriametrics:8428` in both modes.
+  The network must exist in development as well.
+- Series contract (`docs/*/series.md`): `ifdd_property` names a property in a
+  vocabulary of the type service (was "the `schema` vocabulary"), example
+  IRIs in the form of the type and unit services, the optional label
+  `ifdd_store`, the two ways in (ts-api, directly) and the deduplication.
+  `examples/load_examples.py` uses the new example IRIs.
+- Security page: what ts-api checks and what it does not reach (Grafana, the
+  ingest network).
+
 ## [26.10.2] - 2026-10-14
 
 - Documentation of the instance in `docs/en` and `docs/de` (Sphinx sources,

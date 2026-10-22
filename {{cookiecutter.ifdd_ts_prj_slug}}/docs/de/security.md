@@ -9,6 +9,13 @@ Netz (Grafana) und im Ingest-Netz `{{ cookiecutter.ifdd_ts_ingest_network }}`.
 Wer im Ingest-Netz hängt, kann Reihen schreiben und löschen: nur Container
 anschließen, die Reihen schreiben.
 
+Dienste, die nur einige Reihen schreiben oder lesen sollen, nutzen stattdessen
+ts-api (Template `ifdd-de/ts-api`): Sie prüft je Anfrage ein Access-Token, die
+Rollen und den Store. Diese Prüfung reicht nicht bis Grafana oder ins
+Ingest-Netz: Wer sich bei Grafana anmeldet, sieht die Reihen aller Stores,
+und Container im Ingest-Netz umgehen ts-api. Beides ist so entschieden
+(Entscheidung vom 2026-10-21).
+
 ## Anmeldung an Grafana
 
 - Anmeldung über Keycloak (generisches OAuth) mit dem Client

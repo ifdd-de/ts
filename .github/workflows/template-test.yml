@@ -61,7 +61,10 @@ jobs:
       - name: start
         working-directory: out/ifdd-ts
         run: |
+          # The external networks of docker-compose-development.yml, with the
+          # default names (ifdd_proxy_network, ifdd_ts_ingest_network).
           docker network create proxy-net
+          docker network create ts-ingest
           ./adm_01_plugins.sh
           ./adm_02_run.sh development --wait
       - name: probe
