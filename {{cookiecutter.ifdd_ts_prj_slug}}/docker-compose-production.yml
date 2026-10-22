@@ -8,6 +8,9 @@ services:
       - "-storageDataPath=/storage"
       - "-retentionPeriod=${IFDD_TS_RETENTION:?set IFDD_TS_RETENTION in .env}"
       - "-httpListenAddr=:8428"
+      # Two samples of one series with the same time keep one value (the
+      # larger); repeating a write is harmless. See docs/en/series.md.
+      - "-dedup.minScrapeInterval=1ms"
     read_only: true
     tmpfs:
       - /tmp

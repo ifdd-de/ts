@@ -129,6 +129,15 @@ def test_compose_hardening(mode):
     assert "traefik.enable=false" in services["victoriametrics"]["labels"]
 
 
+@pytest.mark.parametrize("mode", COMPOSE)
+def test_victoriametrics_deduplicates_and_joins_the_ingest_network(mode):
+    document = load_yaml(COMPOSE[mode])
+    vm = document["services"]["victoriametrics"]
+    assert "-dedup.minScrapeInterval=1ms" in vm["command"]
+    assert "ingest" in vm["networks"]
+    assert document["networks"]["ingest"]["external"] is True
+
+
 def test_production_does_not_publish_ports():
     services = load_yaml(COMPOSE["production"])["services"]
     assert all("ports" not in service for service in services.values())

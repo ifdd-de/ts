@@ -9,8 +9,9 @@ links series and objects relies on these labels; writers must set them.
 | Label | Required | Value |
 |---|---|---|
 | `ifdd_id` | yes | the full `@id` IRI of the object in ifdd-be, exactly as the backend stores it |
-| `ifdd_property` | yes | the full IRI of the property in the `schema` vocabulary |
-| `ifdd_unit` | yes | the full IRI of the unit in the `unit` service; for dimensionless values the IRI of the "one" unit |
+| `ifdd_property` | yes | the full IRI of the property in a vocabulary of the `type` service |
+| `ifdd_unit` | yes | the full IRI of the unit in the `unit` service; for dimensionless values the IRI of a dimensionless unit |
+| `ifdd_store` | no | the store, set by ts-api on every sample written through it (see below) |
 
 Full IRIs, never prefixed names (CURIEs): the labels must be comparable
 without knowing a JSON-LD context. A series without `ifdd_id` is stored, but
@@ -33,18 +34,28 @@ timestamps, no free text), because every distinct label set is a new series.
 
 ## Writing
 
-Writers reach VictoriaMetrics at `http://victoriametrics:8428` from a
-container on the ingest network (production) or at `127.0.0.1` + the
-development port. VictoriaMetrics accepts several protocols; two were
-checked against v1.153.0 for this template:
+There are two ways in:
+
+- **ts-api** (template `ifdd-de/ts-api`, path `/tsapi` on the host of
+  Grafana): with an access token of the realm, only in the stores the
+  caller's roles open, and with every sample checked against the vocabulary
+  of its property. It accepts exactly the four labels above and sets
+  `ifdd_store`. Services that should not get unchecked access write there.
+- **directly**: containers on the ingest network reach VictoriaMetrics at
+  `http://victoriametrics:8428` (in production and in development), the
+  host at `127.0.0.1` + the development port. Nothing is
+  checked there.
+
+VictoriaMetrics accepts several protocols; two were checked against v1.153.0
+for this template:
 
 JSON lines (`/api/v1/import`), as used by `examples/load_examples.py`:
 
 ```json
 {"metric": {"__name__": "active_power",
             "ifdd_id": "https://assets.example.org/products/transformer-0001",
-            "ifdd_property": "https://schema.example.org/v1/product.jsonld#activePower",
-            "ifdd_unit": "https://unit.example.org/v1/base/megawatt"},
+            "ifdd_property": "https://type.example.org/v1/product/activePower",
+            "ifdd_unit": "https://unit.example.org/v1/unit/MegaW"},
  "values": [118.2, 119.0], "timestamps": [1790000000000, 1790000060000]}
 ```
 
@@ -52,10 +63,28 @@ InfluxDB line protocol (`/write`); tags become labels, the metric name is
 `<measurement>_<field>`, here `breaker_state_value`:
 
 ```text
-breaker_state,ifdd_id=https://assets.example.org/products/breaker-0003,ifdd_property=https://schema.example.org/v1/product.jsonld#switchState,ifdd_unit=https://unit.example.org/v1/base/one value=1
+breaker_state,ifdd_id=https://assets.example.org/products/breaker-0003,ifdd_property=https://type.example.org/v1/product/switchState,ifdd_unit=https://unit.example.org/v1/unit/UNITLESS value=1
 ```
 
 In line protocol, commas, spaces and `=` inside a tag value must be escaped
 with a backslash. IRIs rarely contain them, but check before relying on it.
 
 Samples older than the retention (`IFDD_TS_RETENTION`) are rejected.
+
+## Stores
+
+A store is a named part of the time series: the label `ifdd_store`, e.g.
+`temperature.ops.example.ifdd.de`. ts-api sets it on every sample written
+through it and reads only series with the store asked for; the roles of the
+caller decide which stores it may use. Grafana ignores the label: both
+dashboards show the series of every store, so values of two stores (say
+temperature and humidity of one object) appear side by side. Direct writers
+may set `ifdd_store` or leave it out; ts-api does not see series without it.
+
+## Same time twice
+
+VictoriaMetrics runs with `-dedup.minScrapeInterval=1ms`. Of two samples of
+one series with the same time (to the millisecond) it keeps one: the larger
+value, not the later one (observed with v1.153.0). Writing the same sample
+again is therefore harmless, and a value cannot be corrected by writing it
+again. Without the flag VictoriaMetrics keeps both samples.
