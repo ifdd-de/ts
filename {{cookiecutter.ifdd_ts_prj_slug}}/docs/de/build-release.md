@@ -28,6 +28,14 @@ Grafana-Abhängigkeit des Plugins prüfen, dann die Instanz mit `cruft update`
 aktualisieren und `adm_01_plugins.sh` erneut ausführen. Getestet mit Grafana
 13.2.3, VictoriaMetrics v1.153.0 und Infinity 4.0.0.
 
+```{note}
+Nicht getestet: Grafana 13.3.0 und Infinity 4.1.5, die Vorgaben seit
+26.10.3 (Infinity 4.1.5 verlangt Grafana 12.2.5 oder neuer). Nach einem
+Grafana-Update die mitgelieferten Datenquellen-Plugins mit `disable_plugins`
+in `grafana.ini` abgleichen; ein neues mitgeliefertes Plugin startet als
+weiterer Prozess.
+```
+
 ## Dashboards
 
 Dashboards sind Dateien. Die mitgelieferten liegen in

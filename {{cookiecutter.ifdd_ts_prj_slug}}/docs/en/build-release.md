@@ -29,6 +29,13 @@ Grafana dependency, then `cruft update` the instance and run
 `adm_01_plugins.sh` again. Tested with Grafana 13.2.3, VictoriaMetrics
 v1.153.0 and Infinity 4.0.0.
 
+```{note}
+Not tested: Grafana 13.3.0 and Infinity 4.1.5, the defaults since
+26.10.3 (Infinity 4.1.5 declares Grafana 12.2.5 or later). After a Grafana
+update compare the bundled data source plugins with `disable_plugins` in
+`grafana.ini`; a new bundled plugin starts as an extra process.
+```
+
 ## Dashboards
 
 Dashboards are files. The shipped ones live in `grafana/dashboards/ifdd/`
