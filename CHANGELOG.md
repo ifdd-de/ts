@@ -1,6 +1,17 @@
 # Changelog
 
-## [Unreleased]
+## [26.10.3] - 2026-10-30
+
+- Grafana 13.3.0 (`ifdd_ts_grafana_image`, was 13.2.3), VictoriaMetrics
+  v1.155.0 (`ifdd_ts_vm_image`, was v1.153.0), Infinity data source 4.1.5
+  (`grafana/plugins.lock`, was 4.0.0, checksums from the release zips).
+- `build-release`: after a Grafana update check the list of bundled plugins
+  for `disable_plugins`; Grafana 13.3.0 not tested.
+- Documentation check: Sphinx 9.2.0 (`tests/docs/requirements.txt`).
+- Upgrade: `cruft update`, `./adm_01_plugins.sh`, then
+  `docker compose -f docker-compose-production.yml up -d`. Instances generated
+  with the old image values change them with `cruft update
+  --variables-to-update`.
 
 - VictoriaMetrics runs with `-dedup.minScrapeInterval=1ms` in both modes: of
   two samples of one series with the same time it keeps one (the larger

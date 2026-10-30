@@ -34,7 +34,7 @@ The skip list keeps instance-owned files out of every later `cruft update`.
 | `ifdd_ts_oidc_client_id` | `ifdd-ts` | Keycloak client for login and for reading ifdd-be |
 | `ifdd_ts_roles_claim` | `realm_access.roles` | where the roles are in the token |
 | `ifdd_ts_role_admin`, `_editor`, `_viewer` | `admin`, `readwrite`, `readonly` | Keycloak roles for Grafana Admin, Editor, Viewer |
-| `ifdd_ts_grafana_image`, `ifdd_ts_vm_image` | `grafana/grafana:13.2.3`, `victoriametrics/victoria-metrics:v1.153.0` | images; for a mirror, the image in the internal registry |
+| `ifdd_ts_grafana_image`, `ifdd_ts_vm_image` | `grafana/grafana:13.3.0`, `victoriametrics/victoria-metrics:v1.155.0` | images; for a mirror, the image in the internal registry |
 | `ifdd_ts_grafana_memory_limit`, `ifdd_ts_vm_memory_limit` | `1G`, `2G` | memory limits; Grafana measured (instance documentation, operations), VictoriaMetrics a starting value |
 | `ifdd_ts_ingest_network` | `ts-ingest` | Docker network on which writers reach VictoriaMetrics |
 | `ifdd_proxy_network` | `proxy-net` | Docker network of the proxy |
