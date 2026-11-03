@@ -53,6 +53,10 @@ services:
       IFDD_TS_OIDC_CLIENT_ID: "${IFDD_TS_OIDC_CLIENT_ID:?set IFDD_TS_OIDC_CLIENT_ID in .env}"
       IFDD_TS_BE_URL: "${IFDD_TS_BE_URL:?set IFDD_TS_BE_URL in .env}"
       IFDD_TS_BE_AUTH: "oauth2"
+      # Grafana and its plugins are Go programs: they trust the system CAs and
+      # every certificate in these directories (certs/, e.g. the CA of a realm
+      # on another server).
+      SSL_CERT_DIR: "/etc/ssl/certs:/etc/ifdd/certs"
     secrets:
       - grafana_admin_password
       - grafana_secret_key
@@ -63,6 +67,14 @@ services:
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/etc/grafana/dashboards:ro
+      # CA certificates only (certs/README.md); a missing directory is an
+      # error instead of an empty directory created by Docker.
+      - type: bind
+        source: ./certs
+        target: /etc/ifdd/certs
+        read_only: true
+        bind:
+          create_host_path: false
     networks:
       - internal
       - ext-proxy-net

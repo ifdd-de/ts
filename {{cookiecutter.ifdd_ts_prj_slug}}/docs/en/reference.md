@@ -12,6 +12,7 @@ variable.
 | `docker-compose-production.yml`, `docker-compose-development.yml` | the two modes |
 | `dotenv.dist` → `.env` | values for compose; `.env` is not committed |
 | `secrets/` | admin password, secret key (generated), Keycloak client secret (yours); not committed |
+| `certs/` | CA certificates Grafana trusts in addition to the system CAs (production); not committed |
 | `grafana/grafana.ini` | Grafana settings, environment-specific values via `$__env{}` |
 | `grafana/provisioning/` | data sources and dashboard folders |
 | `grafana/dashboards/ifdd/`, `grafana/dashboards/private/` | shipped dashboards, your own |

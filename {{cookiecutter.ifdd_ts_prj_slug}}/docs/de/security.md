@@ -37,10 +37,25 @@ auf `IFDD_TS_BE_URL` (erlaubte Hosts). Editoren und Admins können
 Infinity-Abfragen schreiben; sie erreichen das Backend mit den Rechten dieses
 Service-Accounts. Ihm nur die Leserechte geben, die die Dashboards brauchen.
 
+(ifdd-ts-security-certificates)=
 ## Zertifikate
 
-Mit einer internen CA muss Grafana (Keycloak-Anmeldung) und das Plugin
-Infinity (Backend) der CA vertrauen. Das Template richtet das nicht ein.
+Grafana ruft den Realm selbst auf (Token, Schlüssel der Anmeldung), und das
+Plugin Infinity ruft das Backend auf. Mit einer internen CA, besonders wenn
+Realm oder Backend auf einem anderen Server laufen, müssen beide dieser CA
+vertrauen: ihr Zertifikat nach `certs/` legen (bei einer Zwischen-CA ein
+Bündel aus Root und Zwischen-CA, für andere lesbar), dann Grafana neu starten.
+Die Produktion hängt `certs/` nur lesend ein und ergänzt es über
+`SSL_CERT_DIR` um die System-CAs; Grafana und seine Plugins sind
+Go-Programme, die diese Variable lesen.
+
+```{note}
+Nicht getestet: mit dem Grafana-Image und einem echten Realm. Geprüft:
+Grafana 13.3.0 nutzt für die Anmeldung die System-CAs, solange
+`tls_client_ca` nicht gesetzt ist (im Quelltext gelesen), und ein Programm mit
+Go 1.24.7 vertraut einer CA in einem Verzeichnis aus `SSL_CERT_DIR` und
+behält die System-CAs.
+```
 
 ## Secrets
 

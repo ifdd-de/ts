@@ -138,6 +138,20 @@ def test_victoriametrics_deduplicates_and_joins_the_ingest_network(mode):
     assert document["networks"]["ingest"]["external"] is True
 
 
+def test_grafana_trusts_the_cas_in_certs():
+    """Grafana calls the realm (login) and the backend (data sources) itself;
+    on another server with a CA of its own that CA must be trusted (certs/)."""
+    grafana = load_yaml(COMPOSE["production"])["services"]["grafana"]
+    dirs = grafana["environment"]["SSL_CERT_DIR"].split(":")
+    assert "/etc/ssl/certs" in dirs, "the system CAs must stay trusted"
+    mounts = [v for v in grafana["volumes"] if isinstance(v, dict) and v.get("target") in dirs]
+    assert len(mounts) == 1, grafana["volumes"]
+    mount = mounts[0]
+    assert mount["source"] == "./certs" and mount["read_only"] is True
+    assert mount["bind"]["create_host_path"] is False
+    assert (ROOT / "certs").is_dir()
+
+
 def test_production_does_not_publish_ports():
     services = load_yaml(COMPOSE["production"])["services"]
     assert all("ports" not in service for service in services.values())

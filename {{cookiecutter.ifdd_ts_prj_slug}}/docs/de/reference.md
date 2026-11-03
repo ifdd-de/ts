@@ -12,6 +12,7 @@ ist.
 | `docker-compose-production.yml`, `docker-compose-development.yml` | die beiden Betriebsarten |
 | `dotenv.dist` → `.env` | Werte für compose; `.env` wird nicht committet |
 | `secrets/` | Admin-Passwort, Secret Key (erzeugt), Keycloak-Client-Secret (Ihres); nicht committet |
+| `certs/` | CA-Zertifikate, denen Grafana zusätzlich zu den System-CAs vertraut (Produktion); nicht committet |
 | `grafana/grafana.ini` | Grafana-Einstellungen, umgebungsabhängige Werte über `$__env{}` |
 | `grafana/provisioning/` | Datenquellen und Dashboard-Ordner |
 | `grafana/dashboards/ifdd/`, `grafana/dashboards/private/` | mitgelieferte Dashboards, eigene |

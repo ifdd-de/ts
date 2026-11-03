@@ -5,6 +5,10 @@
 secrets/*
 !secrets/.gitkeep
 
+# CA certificates of this installation (certs/README.md)
+certs/*
+!certs/README.md
+
 # Fetched by adm_01_plugins.sh
 grafana/plugins/*
 !grafana/plugins/.gitkeep

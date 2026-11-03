@@ -19,7 +19,7 @@ Start with `docker compose -f docker-compose-production.yml logs grafana`.
 |---|---|---|
 | Keycloak answers `Invalid parameter: redirect_uri` | the client lacks `https://<IFDD_TS_HOST>/login/generic_oauth` | add it to the client |
 | the login is refused after Keycloak | the user has none of the roles `{{ cookiecutter.ifdd_ts_role_admin }}`, `{{ cookiecutter.ifdd_ts_role_editor }}`, `{{ cookiecutter.ifdd_ts_role_viewer }}` | assign a realm role |
-| certificate errors in the Grafana log at login | Grafana does not trust the CA of the realm's certificate | not wired up by the template; see {ref}`ifdd-ts-security` |
+| certificate errors in the Grafana log at login | Grafana does not trust the CA of the realm's certificate, or the server sends no intermediate CA | put the CA into `certs/`, restart Grafana ({ref}`ifdd-ts-security-certificates`) |
 
 ## Dashboards
 
