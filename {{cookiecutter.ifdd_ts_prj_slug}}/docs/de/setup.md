@@ -23,7 +23,7 @@ empfiehlt:
 
 ```bash
 cruft create --no-input --config-file .cookiecutter_all.yaml \
-  --skip .env --skip secrets --skip certs --skip grafana/dashboards/private \
+  --skip .env --skip secrets --skip grafana/dashboards/private \
   https://github.com/ifdd-de/ts
 ```
 
