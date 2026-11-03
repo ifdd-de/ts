@@ -1,5 +1,20 @@
 # Changelog
 
+## [Unreleased]
+
+- Grafana trusts the CA certificates in `certs/` (new directory, not
+  committed, on the recommended skip list): production mounts it read-only
+  and sets `SSL_CERT_DIR=/etc/ssl/certs:/etc/ifdd/certs`, so the login
+  (token exchange with the realm) and the plugins (Infinity, backend) work
+  with an internal CA, also when realm or backend run on another server.
+  Before, the template did not wire this up.
+- Setup page: section on several servers; security page: certificates;
+  troubleshooting: certificate errors at login point to `certs/`.
+- Upgrade: `cruft update` brings `certs/README.md`; put the CA there, add
+  `certs` to the skip list in `.cruft.json`, then recreate Grafana
+  (`docker compose -f docker-compose-production.yml up -d`). The compose file
+  requires the directory (`create_host_path: false`).
+
 ## [26.10.3] - 2026-10-30
 
 - Grafana 13.3.0 (`ifdd_ts_grafana_image`, was 13.2.3), VictoriaMetrics

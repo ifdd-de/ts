@@ -23,7 +23,7 @@ empfiehlt:
 
 ```bash
 cruft create --no-input --config-file .cookiecutter_all.yaml \
-  --skip .env --skip secrets --skip grafana/dashboards/private \
+  --skip .env --skip secrets --skip certs --skip grafana/dashboards/private \
   https://github.com/ifdd-de/ts
 ```
 
@@ -60,6 +60,20 @@ Grafana-Admin-Passwort und den Secret Key in `secrets/`. In `.env` mindestens
 `IFDD_TS_OIDC_ISSUER` und `IFDD_TS_OIDC_CLIENT_ID` prüfen. Die Einträge stehen
 in {ref}`ifdd-ts-reference`; die Template-Variablen in
 {ref}`ifdd-instances-ts`.
+
+(ifdd-ts-setup-several-servers)=
+### Mehrere Server
+
+Wenn der Realm oder das Backend auf einem anderen Server laufen:
+
+- `IFDD_TS_OIDC_ISSUER` ist der Realm der Stage dieses Servers, und sein
+  Client `IFDD_TS_OIDC_CLIENT_ID` hat das Secret dieses Realms in
+  `secrets/oidc_client_secret`.
+- Grafana ruft beide selbst auf: die CA, die ihre Zertifikate ausgestellt hat,
+  nach `certs/` legen ({ref}`ifdd-ts-security-certificates`).
+- `IFDD_TS_BE_URL` sollte die `https://`-URL des Backends sein. Der Proxy
+  beantwortet `http://` mit einer Weiterleitung auf HTTPS; ob das Plugin
+  Infinity ihr folgt, ist nicht getestet.
 
 ## Plugins und erster Start
 

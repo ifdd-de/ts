@@ -36,10 +36,23 @@ to `IFDD_TS_BE_URL` (allowed hosts). Editors and admins can write Infinity
 queries; they reach the backend with the rights of that service account.
 Give it only the read rights the dashboards need.
 
+(ifdd-ts-security-certificates)=
 ## Certificates
 
-With an internal CA, the CA must be trusted by Grafana (Keycloak login) and
-by the Infinity plugin (backend). The template does not wire this up.
+Grafana calls the realm itself (token, keys of the login), and the Infinity
+plugin calls the backend. With an internal CA, in particular when the realm
+or the backend runs on another server, both must trust that CA: put its
+certificate into `certs/` (for an intermediate CA a bundle of root and
+intermediate, readable for others), then restart Grafana. Production mounts
+`certs/` read-only and adds it to the system CAs through `SSL_CERT_DIR`;
+Grafana and its plugins are Go programs, which read that variable.
+
+```{note}
+Not tested: with the Grafana image and a real realm. Checked: Grafana 13.3.0
+uses the system CAs for the login unless `tls_client_ca` is set (read in its
+source), and a Go 1.24.7 program trusts a CA in a directory of
+`SSL_CERT_DIR` while keeping the system CAs.
+```
 
 ## Secrets
 
