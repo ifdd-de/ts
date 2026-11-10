@@ -178,11 +178,16 @@ def test_dotenv_takes_the_ids_of_the_host_user():
 
 
 def test_generated_env_names_a_user_other_than_root():
+    """A fresh .env has the ids (the template CI checks that the hook writes
+    them). An instance from before keeps its .env (skip list) and gets them
+    by hand, as operations.md describes; adm_02_run.sh reports them missing."""
     env = ROOT / ".env"
     if not env.exists():
         pytest.skip("no .env")
     values = dotenv_values(env)
-    uid, gid = values["IFDD_TS_VM_UID"], values["IFDD_TS_VM_GID"]
+    if "IFDD_TS_VM_UID" not in values and "IFDD_TS_VM_GID" not in values:
+        pytest.skip(".env from before IFDD_TS_VM_UID: add the ids by hand (docs/en/operations.md)")
+    uid, gid = values.get("IFDD_TS_VM_UID", ""), values.get("IFDD_TS_VM_GID", "")
     assert uid.isdigit() and gid.isdigit(), (uid, gid)
     assert uid != "0"
 

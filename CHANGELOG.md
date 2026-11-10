@@ -21,7 +21,9 @@
   docker); template CI: job `production-vm` starts VictoriaMetrics of the
   production file, writes a sample and deletes the directory as the runner
   user; the hook refuses `sudo cookiecutter`. Fixture `custom` uses
-  `./data/vm`.
+  `./data/vm`. The check of the ids in `.env` skips a `.env` from before
+  this change (kept by the skip list, as in the update test); a `.env` with
+  only one of the two ids fails.
 - Docs: setup, operations ("Owner of the data"), security, reference,
   troubleshooting.
 - Upgrade: `cruft update`; then add `IFDD_TS_VM_UID` and `IFDD_TS_VM_GID`
