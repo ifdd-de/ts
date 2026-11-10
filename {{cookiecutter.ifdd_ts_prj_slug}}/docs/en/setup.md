@@ -9,7 +9,7 @@
 | the external network `{{ cookiecutter.ifdd_proxy_network }}` and a running proxy instance | Traefik routes `IFDD_TS_HOST` to Grafana |
 | the external network `{{ cookiecutter.ifdd_ts_ingest_network }}` | writers reach VictoriaMetrics there; create it once |
 | the client `{{ cookiecutter.ifdd_ts_oidc_client_id }}` in the realm | login and reading the backend; the keycloak template creates it |
-| a directory for the series (`IFDD_TS_VM_DATA_DIR`) | VictoriaMetrics keeps its data there |
+| a directory for the series (`IFDD_TS_VM_DATA_DIR`) | VictoriaMetrics keeps its data there; it belongs to the host user VictoriaMetrics runs as |
 | internet once, or the plugin zips | `adm_01_plugins.sh` fetches the Grafana plugin |
 
 ## Create the instance
@@ -60,6 +60,15 @@ Grafana admin password and secret key into `secrets/`. Set at least
 `IFDD_TS_BE_URL`, `IFDD_TS_OIDC_ISSUER` and `IFDD_TS_OIDC_CLIENT_ID`. The
 entries are listed in {ref}`ifdd-ts-reference`; the template variables in
 {ref}`ifdd-instances-ts`.
+
+Generate the instance as the user who is to own the series, not as root (the
+hook refuses root). The hook writes the ids of that user into
+`IFDD_TS_VM_UID` and `IFDD_TS_VM_GID` and creates `IFDD_TS_VM_DATA_DIR` with
+mode 0700. VictoriaMetrics runs as that user in production, so its files on
+the host belong to that user, who can delete them without `sudo`
+({ref}`ifdd-ts-operations-data-owner`). If you set another
+`IFDD_TS_VM_DATA_DIR`, create that directory as the same user; compose does
+not create it.
 
 (ifdd-ts-setup-several-servers)=
 ### Several servers

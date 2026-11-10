@@ -25,8 +25,22 @@ done
 
 if [[ "$mode" == production ]]; then
   [[ -s secrets/oidc_client_secret ]] || fail "secrets/oidc_client_secret is empty"
+  # Placeholders of dotenv.dist (<<host:uid>>) are no shell syntax.
+  ! grep -q '=<<' .env \
+    || fail ".env has placeholders of dotenv.dist (<<...>>): set IFDD_TS_VM_UID and IFDD_TS_VM_GID to the ids of the host user that owns the data (id -u, id -g)"
   set -a; source .env; set +a
   [[ -n "${IFDD_TS_VM_DATA_DIR:-}" ]] || fail "IFDD_TS_VM_DATA_DIR is not set in .env"
+  # VictoriaMetrics runs as this host user; its data must belong to it.
+  uid="${IFDD_TS_VM_UID:-}"
+  gid="${IFDD_TS_VM_GID:-}"
+  [[ "$uid" =~ ^[0-9]+$ && "$gid" =~ ^[0-9]+$ ]] \
+    || fail "IFDD_TS_VM_UID and IFDD_TS_VM_GID must be set in .env to the ids of the host user that owns the data (see docs/en/operations.md)"
+  [[ "$uid" != 0 ]] || fail "IFDD_TS_VM_UID is 0: VictoriaMetrics would write its data as root"
+  data="$IFDD_TS_VM_DATA_DIR"
+  [[ -d "$data" ]] || fail "$data is missing - create it as the user with uid $uid: mkdir -m 700 $data"
+  not_owned=$(find "$data" ! -user "$uid" -print -quit 2>/dev/null || true)
+  [[ -z "$not_owned" ]] \
+    || fail "$not_owned does not belong to uid $uid - once: docker compose -f docker-compose-production.yml stop victoriametrics; sudo chown -R $uid:$gid $data"
 fi
 
 docker compose -f "docker-compose-$mode.yml" up -d "$@"

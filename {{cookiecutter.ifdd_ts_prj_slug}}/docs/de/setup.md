@@ -9,7 +9,7 @@
 | das externe Netz `{{ cookiecutter.ifdd_proxy_network }}` und eine laufende Proxy-Instanz | Traefik routet `IFDD_TS_HOST` zu Grafana |
 | das externe Netz `{{ cookiecutter.ifdd_ts_ingest_network }}` | Schreiber erreichen dort VictoriaMetrics; einmal anlegen |
 | der Client `{{ cookiecutter.ifdd_ts_oidc_client_id }}` im Realm | Anmeldung und Lesen des Backends; das Keycloak-Template legt ihn an |
-| ein Verzeichnis für die Reihen (`IFDD_TS_VM_DATA_DIR`) | VictoriaMetrics hält dort seine Daten |
+| ein Verzeichnis für die Reihen (`IFDD_TS_VM_DATA_DIR`) | VictoriaMetrics hält dort seine Daten; es gehört dem Host-Nutzer, als der VictoriaMetrics läuft |
 | einmal Internet oder die Plugin-Zips | `adm_01_plugins.sh` holt das Grafana-Plugin |
 
 ## Instanz anlegen
@@ -60,6 +60,15 @@ Grafana-Admin-Passwort und den Secret Key in `secrets/`. In `.env` mindestens
 `IFDD_TS_OIDC_ISSUER` und `IFDD_TS_OIDC_CLIENT_ID` prüfen. Die Einträge stehen
 in {ref}`ifdd-ts-reference`; die Template-Variablen in
 {ref}`ifdd-instances-ts`.
+
+Die Instanz als der Nutzer erzeugen, dem die Reihen gehören sollen, nicht als
+root (der Hook lehnt root ab). Der Hook schreibt die ids dieses Nutzers in
+`IFDD_TS_VM_UID` und `IFDD_TS_VM_GID` und legt `IFDD_TS_VM_DATA_DIR` mit
+Modus 0700 an. VictoriaMetrics läuft in Produktion als dieser Nutzer; seine
+Dateien auf dem Host gehören also diesem Nutzer, der sie ohne `sudo` löschen
+kann ({ref}`ifdd-ts-operations-data-owner`). Wer ein anderes
+`IFDD_TS_VM_DATA_DIR` setzt, legt dieses Verzeichnis als derselbe Nutzer an;
+compose legt es nicht an.
 
 (ifdd-ts-setup-several-servers)=
 ### Mehrere Server

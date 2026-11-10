@@ -40,6 +40,38 @@ Sitzungen. `.env` und `secrets/` ebenfalls aufbewahren.
 Nicht getestet: Sicherung und Wiederherstellung der Reihen.
 ```
 
+(ifdd-ts-operations-data-owner)=
+## Eigentümer der Daten
+
+In Produktion läuft VictoriaMetrics als `IFDD_TS_VM_UID`:`IFDD_TS_VM_GID` aus
+`.env`, dem Host-Nutzer, der die Instanz erzeugt hat; das Image setzt keinen
+Nutzer und liefe als root. Jede Datei unter `IFDD_TS_VM_DATA_DIR` gehört
+diesem Nutzer. `adm_02_run.sh production` startet nicht, wenn das Verzeichnis
+fehlt, eine Datei darin einem anderen Nutzer gehört oder die ids fehlen oder
+0 sind.
+
+Alle Reihen löschen, als dieser Nutzer:
+
+```bash
+docker compose -f docker-compose-production.yml stop victoriametrics
+rm -rf <IFDD_TS_VM_DATA_DIR>
+mkdir -m 700 <IFDD_TS_VM_DATA_DIR>
+./adm_02_run.sh production
+```
+
+Instanzen von vor dieser Änderung, deren Daten root gehören, einmalig:
+
+1. `IFDD_TS_VM_UID` und `IFDD_TS_VM_GID` in `.env` ergänzen, mit der Ausgabe
+   von `id -u` und `id -g` des Nutzers, dem die Daten gehören sollen. `.env`
+   steht auf der Skip-Liste, `cruft update` ergänzt sie also nicht.
+2. VictoriaMetrics stoppen und die Daten übergeben:
+   `sudo chown -R <uid>:<gid> <IFDD_TS_VM_DATA_DIR>`.
+3. `./adm_02_run.sh production` erzeugt den Container mit diesem Nutzer neu.
+
+Development behält das benannte Volume `vm-dev-data`; dort läuft
+VictoriaMetrics weiter als root, in einem Docker-Volume und nicht in einem
+Verzeichnis der Instanz.
+
 ## Aufbewahrung
 
 `IFDD_TS_RETENTION` (hier `{{ cookiecutter.ifdd_ts_retention }}`). Ältere

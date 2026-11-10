@@ -4,6 +4,9 @@
 services:
   victoriametrics:
     image: "{{ cookiecutter.ifdd_ts_vm_image }}"
+    # The host user from .env (written by the post-generation hook): the
+    # files below IFDD_TS_VM_DATA_DIR belong to that user, not to root.
+    user: "${IFDD_TS_VM_UID:?set IFDD_TS_VM_UID in .env}:${IFDD_TS_VM_GID:?set IFDD_TS_VM_GID in .env}"
     command:
       - "-storageDataPath=/storage"
       - "-retentionPeriod=${IFDD_TS_RETENTION:?set IFDD_TS_RETENTION in .env}"
@@ -20,7 +23,13 @@ services:
       - "no-new-privileges:true"
     mem_limit: {{ cookiecutter.ifdd_ts_vm_memory_limit }}
     volumes:
-      - "${IFDD_TS_VM_DATA_DIR:?set IFDD_TS_VM_DATA_DIR in .env}:/storage"
+      # Must exist and belong to the user above; without it compose stops
+      # instead of creating it as root.
+      - type: bind
+        source: "${IFDD_TS_VM_DATA_DIR:?set IFDD_TS_VM_DATA_DIR in .env}"
+        target: /storage
+        bind:
+          create_host_path: false
     networks:
       - internal
       - ingest

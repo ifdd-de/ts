@@ -46,6 +46,63 @@ jobs:
             if cookiecutter --no-input -f -o bad . "$bad"; then echo "accepted: $bad"; exit 1; fi
           done
 
+      - name: post-generation hook refuses root and writes the ids of the user
+        run: |
+          if sudo "$(command -v cookiecutter)" --no-input -o as-root .; then
+            echo "rendered as root"; exit 1
+          fi
+          grep -qx "IFDD_TS_VM_UID=$(id -u)" out/*/.env
+          grep -qx "IFDD_TS_VM_GID=$(id -g)" out/*/.env
+          data=$(sed -n 's|^IFDD_TS_VM_DATA_DIR=\./||p' out/*/dotenv.dist)
+          test "$(stat -c '%u %a' out/*/"$data")" = "$(id -u) 700"
+
+  production-vm:
+    # Starts VictoriaMetrics of the production compose file with the real
+    # image: the files it writes below IFDD_TS_VM_DATA_DIR must belong to the
+    # user who generated the instance, so that user can delete them.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: pip install cookiecutter
+      - run: cookiecutter --no-input -o out .
+      - name: start through adm_02_run.sh
+        working-directory: out/ifdd-ts
+        run: |
+          docker network create proxy-net
+          docker network create ts-ingest
+          echo "not-used" > secrets/oidc_client_secret
+          mkdir -p grafana/plugins/yesoreyeram-infinity-datasource
+          echo '{}' > grafana/plugins/yesoreyeram-infinity-datasource/plugin.json
+          ./adm_02_run.sh production --wait victoriametrics
+      - name: write a sample and flush it to disk
+        working-directory: out/ifdd-ts
+        run: |
+          vm() { docker compose -f docker-compose-production.yml exec -T victoriametrics "$@"; }
+          vm wget -q -O /dev/null --post-data 'ifdd_check{ifdd_id="x"} 1' http://127.0.0.1:8428/api/v1/import/prometheus
+          vm wget -q -O /dev/null http://127.0.0.1:8428/internal/force_flush
+          test -n "$(find vm_data -type f -print -quit)"
+      - name: every file belongs to the user, who can delete them
+        working-directory: out/ifdd-ts
+        run: |
+          not_owned=$(find vm_data ! -user "$(id -u)")
+          if [ -n "$not_owned" ]; then echo "$not_owned" | head; exit 1; fi
+          docker compose -f docker-compose-production.yml down
+          rm -rf vm_data
+          test ! -e vm_data
+      - name: adm_02_run.sh refuses data of another user
+        working-directory: out/ifdd-ts
+        run: |
+          mkdir -m 700 vm_data && sudo chown root:root vm_data
+          if ./adm_02_run.sh production victoriametrics 2> err.txt; then exit 1; fi
+          grep -q "sudo chown -R" err.txt
+      - name: logs on failure
+        if: failure()
+        working-directory: out/ifdd-ts
+        run: docker compose -f docker-compose-production.yml logs
+
   smoke:
     # Starts the development stack with the real images and checks what the
     # static tests cannot: images, read-only containers, healthchecks,

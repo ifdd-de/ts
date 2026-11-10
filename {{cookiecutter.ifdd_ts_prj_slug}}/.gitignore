@@ -5,6 +5,11 @@
 secrets/*
 !secrets/.gitkeep
 
+{% if cookiecutter.ifdd_ts_vm_data_dir.startswith("./") -%}
+# Data of VictoriaMetrics (IFDD_TS_VM_DATA_DIR)
+/{{ cookiecutter.ifdd_ts_vm_data_dir[2:].rstrip("/") }}/
+
+{% endif -%}
 # CA certificates of this installation (certs/README.md)
 certs/*
 !certs/README.md

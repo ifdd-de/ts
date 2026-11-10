@@ -67,6 +67,8 @@ enthält keine Secrets.
 ## Container
 
 Beide Container laufen mit schreibgeschütztem Root-Dateisystem, `/tmp` als
-tmpfs, ohne alle Capabilities und mit `no-new-privileges`. Zur Laufzeit wird
+tmpfs, ohne alle Capabilities und mit `no-new-privileges`. In Produktion
+läuft VictoriaMetrics als Host-Nutzer `IFDD_TS_VM_UID`:`IFDD_TS_VM_GID`, nicht
+als root ({ref}`ifdd-ts-operations-data-owner`). Zur Laufzeit wird
 nichts heruntergeladen. Der Grafana-Router hängt keine Sicherheits-Header des
 Proxys an.

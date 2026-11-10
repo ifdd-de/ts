@@ -10,6 +10,13 @@ IFDD_TS_HOST={{ cookiecutter.ifdd_ts_host }}
 # Plan backups for it: the data is kept for IFDD_TS_RETENTION.
 IFDD_TS_VM_DATA_DIR={{ cookiecutter.ifdd_ts_vm_data_dir }}
 
+# Host user and group VictoriaMetrics runs as in production, so everything
+# below IFDD_TS_VM_DATA_DIR belongs to that user and not to root (it can
+# delete the directory without sudo). The directory must belong to them. The
+# post-generation hook writes the ids of the user who generates the instance.
+IFDD_TS_VM_UID=<<host:uid>>
+IFDD_TS_VM_GID=<<host:gid>>
+
 # How long VictoriaMetrics keeps samples (h, d, w, M or y). Samples older
 # than this are deleted and not accepted on ingestion.
 IFDD_TS_RETENTION={{ cookiecutter.ifdd_ts_retention }}

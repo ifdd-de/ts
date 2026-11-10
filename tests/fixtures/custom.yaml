@@ -17,3 +17,4 @@ default_context:
   ifdd_ts_vm_memory_limit: "4G"
   ifdd_ts_ingest_network: "grid-ingest"
   ifdd_proxy_network: "edge-net"
+  ifdd_ts_vm_data_dir: "./data/vm"
