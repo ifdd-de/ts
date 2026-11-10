@@ -152,6 +152,52 @@ def test_grafana_trusts_the_cas_in_certs():
     assert (ROOT / "certs").is_dir()
 
 
+
+def dotenv_values(path: Path) -> dict[str, str]:
+    return dict(line.split("=", 1) for line in path.read_text().splitlines()
+                if "=" in line and not line.startswith("#"))
+
+
+def test_victoriametrics_runs_as_the_host_user_in_production():
+    """The image sets no user: without one, VictoriaMetrics runs as root and
+    everything below IFDD_TS_VM_DATA_DIR belongs to root on the host."""
+    vm = load_yaml(COMPOSE["production"])["services"]["victoriametrics"]
+    assert re.fullmatch(r"\$\{IFDD_TS_VM_UID:\?[^}]*\}:\$\{IFDD_TS_VM_GID:\?[^}]*\}", vm["user"])
+    mounts = [v for v in vm["volumes"] if isinstance(v, dict) and v.get("target") == "/storage"]
+    assert len(mounts) == 1, vm["volumes"]
+    assert mounts[0]["type"] == "bind"
+    assert mounts[0]["source"].startswith("${IFDD_TS_VM_DATA_DIR:?")
+    # Created by Docker, a missing directory would belong to root.
+    assert mounts[0]["bind"]["create_host_path"] is False
+
+
+def test_dotenv_takes_the_ids_of_the_host_user():
+    values = dotenv_values(ROOT / "dotenv.dist")
+    assert values["IFDD_TS_VM_UID"] == "<<host:uid>>"
+    assert values["IFDD_TS_VM_GID"] == "<<host:gid>>"
+
+
+def test_generated_env_names_a_user_other_than_root():
+    """A fresh .env has the ids (the template CI checks that the hook writes
+    them). An instance from before keeps its .env (skip list) and gets them
+    by hand, as operations.md describes; adm_02_run.sh reports them missing."""
+    env = ROOT / ".env"
+    if not env.exists():
+        pytest.skip("no .env")
+    values = dotenv_values(env)
+    if "IFDD_TS_VM_UID" not in values and "IFDD_TS_VM_GID" not in values:
+        pytest.skip(".env from before IFDD_TS_VM_UID: add the ids by hand (docs/en/operations.md)")
+    uid, gid = values.get("IFDD_TS_VM_UID", ""), values.get("IFDD_TS_VM_GID", "")
+    assert uid.isdigit() and gid.isdigit(), (uid, gid)
+    assert uid != "0"
+
+
+def test_relative_data_directory_is_not_committed():
+    data = dotenv_values(ROOT / "dotenv.dist")["IFDD_TS_VM_DATA_DIR"]
+    if not data.startswith("./"):
+        pytest.skip(f"IFDD_TS_VM_DATA_DIR={data} is outside the instance")
+    assert "/" + data[2:].rstrip("/") + "/" in (ROOT / ".gitignore").read_text().splitlines()
+
 def test_production_does_not_publish_ports():
     services = load_yaml(COMPOSE["production"])["services"]
     assert all("ports" not in service for service in services.values())

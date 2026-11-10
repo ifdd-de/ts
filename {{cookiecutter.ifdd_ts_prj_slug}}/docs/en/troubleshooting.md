@@ -12,6 +12,10 @@ Start with `docker compose -f docker-compose-production.yml logs grafana`.
 | `docker compose` stops with `set IFDD_TS_... in .env` | an entry is missing in `.env` | set it |
 | a plugin checksum does not match | the zip in the cache is not the one in `plugins.lock` | delete it from `grafana/plugins-cache/` and fetch again |
 | Grafana stays unhealthy | VictoriaMetrics is not healthy, or the configuration is wrong | logs of both containers |
+| `cookiecutter` or `cruft`: `refusing to run as root` | the instance is generated as root | generate it as the user who is to own the series |
+| `adm_02_run.sh`: `... does not belong to uid ...` | the data was written as root (an instance from before `IFDD_TS_VM_UID`) or by another user | the `chown` the message names, once ({ref}`ifdd-ts-operations-data-owner`) |
+| `adm_02_run.sh`: `... is missing`, or `docker compose`: `bind source path does not exist` | `IFDD_TS_VM_DATA_DIR` does not exist; compose does not create it | `mkdir -m 700` as the user in `IFDD_TS_VM_UID` |
+| VictoriaMetrics log: `FATAL: cannot stat "/storage/...": permission denied` | started without `adm_02_run.sh`, with data of another user | as above: `chown` |
 
 ## Login
 

@@ -12,6 +12,10 @@ Beginnen mit `docker compose -f docker-compose-production.yml logs grafana`.
 | `docker compose` bricht mit `set IFDD_TS_... in .env` ab | ein Eintrag fehlt in `.env` | ihn setzen |
 | eine Plugin-Prüfsumme passt nicht | das Zip im Cache ist nicht das aus `plugins.lock` | es aus `grafana/plugins-cache/` löschen und neu holen |
 | Grafana bleibt unhealthy | VictoriaMetrics ist nicht healthy, oder die Konfiguration ist falsch | Logs beider Container |
+| `cookiecutter` oder `cruft`: `refusing to run as root` | die Instanz wird als root erzeugt | als der Nutzer erzeugen, dem die Reihen gehören sollen |
+| `adm_02_run.sh`: `... does not belong to uid ...` | die Daten wurden als root geschrieben (Instanz von vor `IFDD_TS_VM_UID`) oder von einem anderen Nutzer | das `chown` aus der Meldung, einmalig ({ref}`ifdd-ts-operations-data-owner`) |
+| `adm_02_run.sh`: `... is missing`, oder `docker compose`: `bind source path does not exist` | `IFDD_TS_VM_DATA_DIR` fehlt; compose legt es nicht an | `mkdir -m 700` als der Nutzer aus `IFDD_TS_VM_UID` |
+| VictoriaMetrics-Log: `FATAL: cannot stat "/storage/...": permission denied` | ohne `adm_02_run.sh` gestartet, mit Daten eines anderen Nutzers | wie oben: `chown` |
 
 ## Anmeldung
 

@@ -27,6 +27,7 @@ ist.
 |---|---|---|
 | `IFDD_TS_HOST` | `{{ cookiecutter.ifdd_ts_host }}` | Host, den der Proxy zu Grafana routet |
 | `IFDD_TS_VM_DATA_DIR` | `{{ cookiecutter.ifdd_ts_vm_data_dir }}` | Verzeichnis der Reihen; Pflicht in Produktion |
+| `IFDD_TS_VM_UID`, `IFDD_TS_VM_GID` | ids des Nutzers, der die Instanz erzeugt hat | Host-Nutzer, als der VictoriaMetrics in Produktion läuft; Eigentümer von `IFDD_TS_VM_DATA_DIR` |
 | `IFDD_TS_RETENTION` | `{{ cookiecutter.ifdd_ts_retention }}` | wie lange Werte bleiben (h, d, w, M, y) |
 | `IFDD_TS_BE_URL` | `{{ cookiecutter.ifdd_ts_be_url }}` | das Backend, wie Grafana es erreicht; ohne abschließenden Schrägstrich |
 | `IFDD_TS_OIDC_ISSUER` | `{{ cookiecutter.ifdd_ts_oidc_issuer }}` | Realm-URL |

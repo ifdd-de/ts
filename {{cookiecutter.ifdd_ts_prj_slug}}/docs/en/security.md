@@ -63,5 +63,7 @@ list, and handed to Grafana as Docker secrets. `.env` holds no secrets.
 ## Containers
 
 Both containers run with a read-only root file system, `/tmp` as tmpfs, all
-capabilities dropped and `no-new-privileges`. Nothing is downloaded at
+capabilities dropped and `no-new-privileges`. In production VictoriaMetrics
+runs as the host user `IFDD_TS_VM_UID`:`IFDD_TS_VM_GID`, not as root
+({ref}`ifdd-ts-operations-data-owner`). Nothing is downloaded at
 runtime. The Grafana router attaches no security headers of the proxy.

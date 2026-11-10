@@ -40,6 +40,37 @@ keeps only users and sessions in its volume `grafana-data`. Keep `.env` and
 Not tested: a backup and restore of the series.
 ```
 
+(ifdd-ts-operations-data-owner)=
+## Owner of the data
+
+In production VictoriaMetrics runs as `IFDD_TS_VM_UID`:`IFDD_TS_VM_GID` from
+`.env`, the host user who generated the instance; the image sets no user and
+would run as root. Every file below `IFDD_TS_VM_DATA_DIR` belongs to that
+user. `adm_02_run.sh production` does not start when the directory is
+missing, when a file in it belongs to another user, or when the ids are
+missing or 0.
+
+Deleting all series, as that user:
+
+```bash
+docker compose -f docker-compose-production.yml stop victoriametrics
+rm -rf <IFDD_TS_VM_DATA_DIR>
+mkdir -m 700 <IFDD_TS_VM_DATA_DIR>
+./adm_02_run.sh production
+```
+
+Instances created before this change, whose data belongs to root, once:
+
+1. Add `IFDD_TS_VM_UID` and `IFDD_TS_VM_GID` to `.env`, with the output of
+   `id -u` and `id -g` of the user who is to own the data. `.env` is on the
+   skip list, so `cruft update` does not add them.
+2. Stop VictoriaMetrics and hand the data over:
+   `sudo chown -R <uid>:<gid> <IFDD_TS_VM_DATA_DIR>`.
+3. `./adm_02_run.sh production` recreates the container with that user.
+
+Development keeps the named volume `vm-dev-data`; there VictoriaMetrics still
+runs as root, inside a Docker volume and not in a directory of the instance.
+
 ## Retention
 
 `IFDD_TS_RETENTION` (here `{{ cookiecutter.ifdd_ts_retention }}`). Samples

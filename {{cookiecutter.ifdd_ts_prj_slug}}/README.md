@@ -10,6 +10,7 @@ at runtime.
 
 ```bash
 docker network create {{ cookiecutter.ifdd_ts_ingest_network }}   # once
+# generated as the user who owns the series, not as root (IFDD_TS_VM_UID)
 # .env: IFDD_TS_HOST, IFDD_TS_VM_DATA_DIR; secrets/oidc_client_secret from Keycloak
 ./adm_01_plugins.sh
 ./adm_02_run.sh production

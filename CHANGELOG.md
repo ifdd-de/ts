@@ -2,6 +2,35 @@
 
 ## [Unreleased]
 
+- VictoriaMetrics runs as a host user in production, no longer as root:
+  `user: ${IFDD_TS_VM_UID}:${IFDD_TS_VM_GID}`. The image sets no user, so
+  everything below `IFDD_TS_VM_DATA_DIR` belonged to root, and deleting it
+  needed `sudo`. The post-generation hook writes the ids of the user who
+  generates the instance into `.env` (`<<host:uid>>`, `<<host:gid>>` in
+  `dotenv.dist`, as in `ifdd-de/keycloak`), creates the data directory
+  (mode 0700) and refuses to run as root.
+- The data directory is a bind mount with `create_host_path: false`: a
+  missing directory stops compose instead of being created as root.
+  `adm_02_run.sh production` checks the ids and that every file in the
+  directory belongs to `IFDD_TS_VM_UID`, and names the `chown` otherwise.
+- `.gitignore` of the instance lists a data directory inside the instance
+  (default `./vm_data`); before, `git add .` took the series along.
+- Development is unchanged (named volume `vm-dev-data`).
+- Tests: `tests/test_config.py` (user, mount, ids in `.env`, `.gitignore`),
+  `tests/test_run_script.py` (checks of `adm_02_run.sh` with a stand-in for
+  docker); template CI: job `production-vm` starts VictoriaMetrics of the
+  production file, writes a sample and deletes the directory as the runner
+  user; the hook refuses `sudo cookiecutter`. Fixture `custom` uses
+  `./data/vm`. The check of the ids in `.env` skips a `.env` from before
+  this change (kept by the skip list, as in the update test); a `.env` with
+  only one of the two ids fails.
+- Docs: setup, operations ("Owner of the data"), security, reference,
+  troubleshooting.
+- Upgrade: `cruft update`; then add `IFDD_TS_VM_UID` and `IFDD_TS_VM_GID`
+  (`id -u`, `id -g`) to `.env`, which is on the skip list; stop
+  VictoriaMetrics, `sudo chown -R <uid>:<gid> <IFDD_TS_VM_DATA_DIR>` once,
+  and start with `./adm_02_run.sh production`.
+
 - Grafana trusts the CA certificates in `certs/` (new directory; the
   certificates are not committed): production mounts it read-only
   and sets `SSL_CERT_DIR=/etc/ssl/certs:/etc/ifdd/certs`, so the login
