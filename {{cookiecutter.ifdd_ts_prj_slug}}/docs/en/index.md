@@ -36,13 +36,23 @@ Two dashboards are provisioned in the folder IFDD:
 
 ## Architecture
 
-```{mermaid}
-flowchart LR
-  Writers[writers] -->|"{{ cookiecutter.ifdd_ts_ingest_network }}, port 8428"| VM[(VictoriaMetrics)]
-  Users[users] --> Proxy[proxy: Traefik] --> Grafana
-  Grafana -->|internal network| VM
-  Grafana -->|Infinity, client credentials| BE[be]
-  Grafana -->|login| KC[Keycloak]
+```{uml}
+@startuml
+left to right direction
+  rectangle "writers" as Writers
+  database "VictoriaMetrics" as VM
+  Writers --> VM : {{ cookiecutter.ifdd_ts_ingest_network }}, port 8428
+  rectangle "users" as Users
+  rectangle "proxy: Traefik" as Proxy
+  rectangle "Grafana" as Grafana
+  Users --> Proxy
+  Proxy --> Grafana
+  Grafana --> VM : internal network
+  rectangle "be" as BE
+  Grafana --> BE : Infinity, client credentials
+  rectangle "Keycloak" as KC
+  Grafana --> KC : login
+@enduml
 ```
 
 | Who | Uses ts for |

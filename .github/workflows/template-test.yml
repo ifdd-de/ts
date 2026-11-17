@@ -29,7 +29,11 @@ jobs:
 
       - name: Documentation (docs/en, docs/de) matches and builds
         run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q default-jre-headless graphviz
           pip install -r tests/docs/requirements.txt
+          IFDD_PLANTUML_JAR="$(tests/docs/get_plantuml.sh)"
+          export IFDD_PLANTUML_JAR
           python tests/check_docs.py out/* --prefix ifdd-ts-
 
       - name: compose files
