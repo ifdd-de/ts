@@ -72,7 +72,8 @@ instance. The instance README is only an entry point that links to them.
 
 The pages have no `conf.py` of their own: they are meant to be copied into a
 Sphinx project that documents all services. That project needs `myst_parser`
-and `sphinxcontrib.mermaid`. Labels start with `ifdd-ts-`; references to
+and `sphinxcontrib.plantuml` (PlantUML with Java and Graphviz).
+Labels start with `ifdd-ts-`; references to
 `ifdd-instances-ts` (the instance chapter of the meta repository) resolve
 only there.
 
@@ -90,6 +91,14 @@ reference to an own label resolvable, and a Sphinx build of each language
 with `-W` (configuration `tests/docs/conf.py`, versions
 `tests/docs/requirements.txt`).
 
+The check runs PlantUML, so it needs Java and Graphviz.
+`tests/docs/get_plantuml.sh` downloads the pinned PlantUML jar into the user
+cache, checks its SHA-256 and prints its path:
+
+```bash
+export IFDD_PLANTUML_JAR="$(tests/docs/get_plantuml.sh)"
+```
+
 ## CI
 
 | Workflow | Does |
@@ -97,36 +106,8 @@ with `-W` (configuration `tests/docs/conf.py`, versions
 | `template-test.yml` | renders both fixtures, checks for leftover placeholders, runs the static checks, checks and builds the documentation (`tests/check_docs.py`), validates both compose files, checks that the hook rejects bad values; smoke test: starts the development stack with the real images, loads the examples, checks plugin signature, dashboards and a query through Grafana |
 | `template-update-test.yml` | generates from the latest tag, applies the current template with `cruft update`, fails on reject files, runs the static checks |
 
-## Honesty notes
+## AI assistance
 
-Documentation `docs/` (2026-10-13): rendered with cookiecutter 2.7.1 for
-both fixtures and with the `cookiecutter_all.yaml` of the meta repository;
-`tests/check_docs.py` passes for each (Sphinx 9.1.0, myst-parser 5.1.0,
-sphinxcontrib-mermaid 2.1.1, on Python 3.13 and 3.14.6), the placeholder
-check finds nothing and the instance tests pass. The workflow file passes
-actionlint 1.7.12; the workflow itself has not run. Content: taken from the
-previous instance README, `docs/series.md` (moved, English text unchanged
-apart from the label), the compose files, `grafana.ini` and the provisioning
-files. Also checked (2026-10-13): one Sphinx project per language with the
-pages of all ten service templates (rendered with `cookiecutter_all.yaml`), the
-instance chapter of the meta repository and ifdd-be-core with its OpenAPI
-document builds with `-W` and no suppressed warnings, so every cross
-reference resolves; the Mermaid diagrams of all services, and of the option
-variants of the fixtures, render in headless Chromium 141.0.7390.37
-(Playwright 1.56.0, Mermaid 11.12.1 served locally).
-
-Checked with the real binaries (VictoriaMetrics v1.153.0, Grafana 13.2.3,
-Infinity 4.0.0), a fake Keycloak and a fake ifdd-be: see the instance
-README. The image tags and the containers themselves were not run at build
-time (no Docker); the smoke test in CI covers them.
-
-Unused bundled plugins (2026-10-08): the process list and memory figures
-come from a running instance on arm64 (Grafana 13.2.3). `disable_plugins`
-("comma-separated list of plugin identifiers to avoid loading (including
-core plugins)") is taken from the Grafana configuration documentation
-("latest"); its effect on 13.2.3 and the memory saved were not measured
-here (Grafana could not be downloaded in the build environment). The new
-instance test fails against the previous template. Measured afterwards on
-the same instance: three processes instead of fifteen, `anon` 191 MB instead
-of 209 MB. The RSS of the plugins was mostly mapped program files, not
-process memory; the default limit became 1G for headroom.
+Some parts of this repository, in particular the tests, the test data and the
+documentation, were developed or improved with the help of large language
+models (LLMs). All changes were reviewed and released by the maintainer.

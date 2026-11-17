@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [26.11.1] - 2026-11-14
 
 - VictoriaMetrics runs as a host user in production, no longer as root:
   `user: ${IFDD_TS_VM_UID}:${IFDD_TS_VM_GID}`. The image sets no user, so
@@ -48,6 +48,14 @@
 - CI: the update test creates its instance with the skip list of the README.
   Without it, the secrets the hook generates in every rendering left `.rej`
   files; this showed with the first update after the tag `v26.10.3`.
+- Documentation: the architecture diagram in `docs/en` and `docs/de` is
+  PlantUML instead of Mermaid, so it also renders in PDF builds. The Sphinx
+  project of the full documentation needs `sphinxcontrib-plantuml`, Java and
+  Graphviz instead of `sphinxcontrib-mermaid`. `tests/docs/get_plantuml.sh`
+  downloads the pinned PlantUML jar (1.2026.10) for `tests/check_docs.py`; the
+  template CI installs Java and Graphviz.
+- READMEs: a section on the use of large language models; the READMEs no
+  longer carry test reports.
 
 ## [26.10.3] - 2026-10-30
 
@@ -83,8 +91,7 @@
   troubleshooting, reference, series. `docs/series.md` moved to
   `docs/en/series.md` (with a German version `docs/de/series.md`); the links
   in the README and `examples/load_examples.py` follow. The instance README
-  is now an entry point with a quick start, the links, the honesty notes and
-  the license; its former sections moved into the documentation.
+  is now an entry point with a quick start, the links and the license; its former sections moved into the documentation.
 - `docs/_build/` in `.gitignore` of the instance.
 - Template CI: `tests/check_docs.py` checks that both languages match and
   build without warnings (`tests/docs/conf.py`, `tests/docs/requirements.txt`).

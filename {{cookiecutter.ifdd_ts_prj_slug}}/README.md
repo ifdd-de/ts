@@ -31,19 +31,12 @@ The pages are Sphinx sources in MyST Markdown, meant to be copied into a
 documentation project that covers all services; GitHub shows them as plain
 Markdown.
 
-## Honesty notes
+## AI assistance
 
-Checked against the real binaries (VictoriaMetrics v1.153.0, Grafana 13.2.3,
-Infinity 4.0.0) with a fake Keycloak and a fake ifdd-be: provisioning of
-both data sources and dashboards, the plugin signature without internet,
-`$__env{}`/`$__file{}`, the backend queries of all dashboard panels including
-the OAuth2 token for ifdd-be, and the login with all role mappings (including
-denial without a role and roles that are only in the access token).
-
-Not checked here: the container images themselves (tags, read-only file
-system, healthchecks) - covered by the CI smoke test; anything that only
-runs in the browser (the regex of the hidden `object_path` variable,
-transformations, data links); a real Keycloak.
+Some parts of the template `ifdd-de/ts` this instance was generated
+from, in particular the tests, the test data and the documentation, were
+developed or improved with the help of large language models (LLMs). All
+changes were reviewed and released by the maintainer.
 
 ## License
 

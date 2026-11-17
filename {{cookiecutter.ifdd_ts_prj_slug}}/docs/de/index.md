@@ -36,13 +36,23 @@ ihrer Einheit in den Labels `ifdd_id`, `ifdd_property` und `ifdd_unit`
 
 ## Architektur
 
-```{mermaid}
-flowchart LR
-  Writers[Schreiber] -->|"{{ cookiecutter.ifdd_ts_ingest_network }}, Port 8428"| VM[(VictoriaMetrics)]
-  Users[Benutzer] --> Proxy[proxy: Traefik] --> Grafana
-  Grafana -->|internes Netz| VM
-  Grafana -->|Infinity, Client Credentials| BE[be]
-  Grafana -->|Anmeldung| KC[Keycloak]
+```{uml}
+@startuml
+left to right direction
+  rectangle "Schreiber" as Writers
+  database "VictoriaMetrics" as VM
+  Writers --> VM : {{ cookiecutter.ifdd_ts_ingest_network }}, Port 8428
+  rectangle "Benutzer" as Users
+  rectangle "proxy: Traefik" as Proxy
+  rectangle "Grafana" as Grafana
+  Users --> Proxy
+  Proxy --> Grafana
+  Grafana --> VM : internes Netz
+  rectangle "be" as BE
+  Grafana --> BE : Infinity, Client Credentials
+  rectangle "Keycloak" as KC
+  Grafana --> KC : Anmeldung
+@enduml
 ```
 
 | Wer | Nutzt ts für |
