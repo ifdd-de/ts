@@ -1,5 +1,12 @@
 # Changelog
 
+## [Unreleased]
+
+- CI: GitHub Actions pinned to commit SHAs (version as comment),
+  `persist-credentials: false` on every checkout, top-level read-only
+  `permissions` where they were missing; the same in the workflows of the
+  instance (there also raised to the actions' current major versions).
+
 ## [26.11.1] - 2026-11-14
 
 - VictoriaMetrics runs as a host user in production, no longer as root:
