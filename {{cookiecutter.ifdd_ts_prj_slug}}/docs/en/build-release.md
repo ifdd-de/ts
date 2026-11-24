@@ -30,8 +30,8 @@ Grafana dependency, then `cruft update` the instance and run
 v1.153.0 and Infinity 4.0.0.
 
 ```{note}
-Not tested: Grafana 13.3.0 and Infinity 4.1.5, the defaults since
-26.10.3 (Infinity 4.1.5 declares Grafana 12.2.5 or later). After a Grafana
+Not tested: Grafana 13.3.1 and Infinity 4.1.8, the defaults since
+26.11.11 (Infinity 4.1.8 declares Grafana 12.2.5 or later). After a Grafana
 update compare the bundled data source plugins with `disable_plugins` in
 `grafana.ini`; a new bundled plugin starts as an extra process.
 ```

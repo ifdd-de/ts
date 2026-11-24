@@ -1,7 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [26.11.11] - 2026-11-24
 
+- Version aligned across all ifdd-de repositories (26.11.11).
+- Upstream images: `ifdd_ts_grafana_image` Grafana 13.3.0 -> 13.3.1,
+  `ifdd_ts_vm_image` VictoriaMetrics v1.155.0 -> v1.157.0. Plugin Infinity
+  4.1.5 -> 4.1.8 (`grafana/plugins.lock`, new SHA-256 of both zips); it
+  still declares Grafana 12.2.5 or later.
 - CI: GitHub Actions pinned to commit SHAs (version as comment),
   `persist-credentials: false` on every checkout, top-level read-only
   `permissions` where they were missing; the same in the workflows of the
