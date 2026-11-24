@@ -3,6 +3,11 @@
 Changes of this instance. Template changes arrive with `cruft update`; see
 the changelog of `ifdd-de/ts`.
 
+## [26.11.11] - 2026-11-24
+
+- Grafana 13.3.1, VictoriaMetrics v1.157.0, Infinity 4.1.8
+  (`grafana/plugins.lock`; see the template CHANGELOG).
+
 ## [26.11.1] - 2026-11-14
 
 - Documentation: architecture diagram in PlantUML; README without test
